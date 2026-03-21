@@ -69,7 +69,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: /data0/zzc/projects/MambaIR/experiments/EQMambaIR_SR_x4_pre_lr3e-4/models/net_g_70000.pth
+  pretrain_network_g: /data0/zzc/projects/MambaIR/experiments/EQMambaIR_SR_x4_pre/models/net_g_70000.pth
   strict_load_g: false
 
 # validation settings

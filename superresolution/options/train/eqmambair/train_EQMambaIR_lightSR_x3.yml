@@ -58,7 +58,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: /mnt/zzc/projects/MambaIR/experiments/EQMambaIR_lightSR_x2_3e-4/models/net_g_500000.pth # x2 path
+  pretrain_network_g: /mnt/zzc/projects/MambaIR/experiments/EQMambaIR_lightSR_x2/models/net_g_500000.pth # x2 path
   strict_load_g: false
   resume_state: ~
 
