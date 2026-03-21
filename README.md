@@ -89,7 +89,7 @@ python -m torch.distributed.launch --nnodes=1 --node_rank=0 --nproc_per_node=8 -
 
 
 
-#### 3. Training on semantic segmentation task
+#### 3. Training on semantic segmentation task (based on Mmsegmentation)
 
 ```
 cd segmentation/
@@ -142,7 +142,7 @@ CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 -
 
 ## 💌 Acknowledgement
 
-* *This project is built using [VMamba](https://github.com/MzeroMiko/VMamba), [MMDetection](https://github.com/open-mmlab/mmdetection), [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) libraries. We express our heartfelt gratitude for the contributions of these open-source projects.*
+* *This project is built using [**VMamba**](https://github.com/MzeroMiko/VMamba), [**F-conv**](https://github.com/XieQi2015/F-Conv), [**Equivariant-ASISR**](https://github.com/XieQi2015/Equivariant-ASISR) repositories. We express our heartfelt gratitude for the contributions of these open-source projects.*
 * *We also want to express our gratitude for some articles introducing this project and derivative implementations based on this project.*
 
 
