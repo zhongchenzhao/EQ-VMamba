@@ -39,6 +39,16 @@ Extensive experiments across multiple benchmarks - including high-level image cl
 
 
 
+
+
+#### Super-resolution Visualization Results
+
+![Mask_visualization](./figures/visualization_super_resolution.png)
+
+
+
+
+
 ## 🚀 Quick Start
 
 #### 1. Requirements
@@ -129,11 +139,10 @@ python -m torch.distributed.launch --nproc_per_node=8 --master_port=1234 basicsr
 python -m torch.distributed.launch --nproc_per_node=8 --master_port=1234 basicsr/train.py -opt options/train/eqmambair/train_EQMambaIR_SR_x4.yml --launcher pytorch;
 
 
-# light EQ-MambaIR
+# lightweight EQ-MambaIR
 CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 --master_port=1234 basicsr/train.py -opt options/train/eqmambair/train_EQMambaIR_lightSR_x2.yml --launcher pytorch;
 CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 --master_port=1234 basicsr/train.py -opt options/train/eqmambair/train_EQMambaIR_lightSR_x3.yml --launcher pytorch;
 CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 --master_port=1234 basicsr/train.py -opt options/train/eqmambair/train_EQMambaIR_lightSR_x4.yml --launcher pytorch;
-
 ```
 
 
