@@ -1,16 +1,3 @@
-"""
-
-"""
-
-# --------------------------------------------------------
-# Modified by $@#Anonymous#@$
-# --------------------------------------------------------
-# Swin Transformer
-# Copyright (c) 2021 Microsoft
-# Licensed under The MIT License [see LICENSE for details]
-# Written by Ze Liu
-# --------------------------------------------------------
-
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -38,9 +25,6 @@ from utils.optimizer import build_optimizer
 from utils.logger import create_logger
 from utils.utils import NativeScalerWithGradNormCount, auto_resume_helper, reduce_tensor
 from utils.utils import load_checkpoint_ema, load_pretrained_ema, save_checkpoint_ema
-
-from fvcore.nn import FlopCountAnalysis, flop_count_str, flop_count
-
 from timm.utils import ModelEma as ModelEma
 
 
@@ -99,7 +83,6 @@ def parse_option():
                         help='root of output folder, the full path is <output>/<model_name>/<tag> (default: output)')
     parser.add_argument('--tag', default=time.strftime("%Y%m%d%H%M%S", time.localtime()), help='tag of experiment')
     parser.add_argument('--eval', action='store_true', help='Perform evaluation only')
-    parser.add_argument('--throughput', action='store_true', help='Test throughput only')
 
     parser.add_argument('--fused_layernorm', action='store_true', help='Use fused layernorm.')
     parser.add_argument('--optim', type=str, help='overwrite optimizer if provided, can be adamw/sgd.')
@@ -128,15 +111,7 @@ def main(config, args):
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     logger.info(f"number of params: {n_parameters}")
 
-    if dist.get_rank() == 0:
-        if hasattr(model, 'flops'):
-            logger.info(str(model))
-            n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-            logger.info(f"number of params: {n_parameters}")
-            flops = model.flops()
-            logger.info(f"number of GFLOPs: {flops / 1e9}")
-        else:
-            logger.info(flop_count_str(FlopCountAnalysis(model, (dataset_val[0][0][None],))))
+
     torch.cuda.empty_cache()
     dist.barrier()
     model.cuda()
@@ -208,17 +183,6 @@ def main(config, args):
 
         if config.EVAL_MODE:
             return
-
-    if config.THROUGHPUT_MODE and (dist.get_rank() == 0):
-        logger.info(f"throughput mode ==============================")
-        throughput(data_loader_val, model, logger)
-        if model_ema is not None:
-            torch.cuda.synchronize()
-            torch.cuda.empty_cache()
-            throughput(data_loader_val, model_ema.ema, logger)
-        return
-
-
 
 
     logger.info("Start training")
@@ -382,25 +346,6 @@ def validate(config, data_loader, model):
     return acc1_meter.avg, acc5_meter.avg, loss_meter.avg
 
 
-
-@torch.no_grad()
-def throughput(data_loader, model, logger):
-    model.eval()
-
-    for idx, (images, _) in enumerate(data_loader):
-        images = images.cuda(non_blocking=True)
-        batch_size = images.shape[0]
-        for i in range(50):
-            model(images)
-        torch.cuda.synchronize()
-        logger.info(f"throughput averaged with 30 times")
-        tic1 = time.time()
-        for i in range(30):
-            model(images)
-        torch.cuda.synchronize()
-        tic2 = time.time()
-        logger.info(f"batch_size {batch_size} throughput {30 * batch_size / (tic2 - tic1)}")
-        return
 
 
 
