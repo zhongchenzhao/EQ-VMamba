@@ -1,12 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@File  : eq_vmamba_light.py
-@Author: ZhongchenZhao
-@Date  : 2025/10/9 22:05
-@Desc  :
-Rotation Equivariant VMamba
-"""
 
 import os
 import time
@@ -27,10 +20,6 @@ from einops import rearrange, repeat
 
 
 DropPath.__repr__ = lambda self: f"timm.DropPath({self.drop_prob})"
-# train speed is slower after enabling this opts.
-# torch.backends.cudnn.enabled = True
-# torch.backends.cudnn.benchmark = True
-# torch.backends.cudnn.deterministic = True
 
 try:
     from .csm_triton import cross_scan_fn, cross_merge_fn
@@ -78,9 +67,6 @@ class EQ_linear_inter(nn.Module):
         self.outNum = outNum
         self.inNum = inNum
         self.weights = nn.Parameter(torch.Tensor(outNum, 1, inNum, tranNum), requires_grad=True)
-
-        # iniw = Getini_reg(inNum, outNum, tranNum)*iniScale #(outNum,1,inNum,expand)
-        # self.weights = nn.Parameter(iniw, requires_grad=True)
 
         self.padding = 0
         self.bias = bias
@@ -209,8 +195,6 @@ class EQ_linear_inter_dt(EQ_linear_inter):
     """
     def __init__(self, inNum, outNum, tranNum=4, bias=True, iniScale=1.0, dt_rank=6, dt_scale=1.0):
         super(EQ_linear_inter_dt, self).__init__(inNum, outNum, tranNum, bias)
-        # self.dt_init_std = dt_rank ** -0.5 * dt_scale
-        # 保存初始化参数
         self.dt_scale = dt_scale
         self.dt_rank = dt_rank
         self.reset_parameters_uniform()
@@ -283,9 +267,6 @@ class Fconv_PCA(nn.Module):
 
             _filter = tempW.reshape(
                 [outNum * tranNum, inNum * self.expand, self.sizeP, self.sizeP])  # torch.Size([64, 5, 3, 3])
-            # print("**** tempW",   tempW.shape)          # torch.Size([3, 4, 2, 4, 3, 3])
-            # print("**** input",   input.shape)          # torch.Size([1, 8, 5, 5])
-            # print("**** _filter", _filter.shape)        # torch.Size([12, 8, 3, 3])
 
             if self.ifbias:
                 _bias = self.c.repeat([1, 1, tranNum, 1]).reshape([1, outNum * tranNum, 1, 1])
@@ -351,10 +332,6 @@ class StrideFconv_PCA(nn.Module):
         Basis, Rank, weight = GetBasis_PCA(sizeP, tranNum, inP, Smooth=Smooth)
         self.register_buffer("Basis", Basis)  # .cuda())
         # Basis.shape: torch.Size([3, 3, 4, 9])
-        # print(Basis[:, :, 0, 0])
-        # print(Basis[:, :, 1, 0])
-        # print(Basis[:, :, 2, 0])
-        # print(Basis[:, :, 3, 0])
 
         self.ifbias = bias
         if ifIni:  # first layer of F-Conv
@@ -492,10 +469,6 @@ class GroupFconv_PCA(nn.Module):
         Basis, Rank, weight = GetBasis_PCA(sizeP, tranNum, inP, Smooth=Smooth)
         self.register_buffer("Basis", Basis)  # .cuda())
         # Basis.shape: torch.Size([3, 3, 4, 9])
-        # print(Basis[:, :, 0, 0])
-        # print(Basis[:, :, 1, 0])
-        # print(Basis[:, :, 2, 0])
-        # print(Basis[:, :, 3, 0])
 
         self.ifbias = bias
         if ifIni:  # first layer of F-Conv
@@ -523,16 +496,8 @@ class GroupFconv_PCA(nn.Module):
             tranNum = self.tranNum  # 4
             outNum = self.outNum  # 16
             inNum = self.inNum  # 5
-            expand = self.expand  # 1
 
             tempW = torch.einsum('ijok,mnak->monaij', self.Basis, self.weights)  # torch.Size([16, 4, 5, 1, 3, 3])
-            # tempW = torch.einsum('ijok,mnak->monaij', [self.Basis, self.weights])   # for torch<1.0
-            # self.Basis torch.Size([3, 3, 4, 9])
-            # self.weights torch.Size([1, 96, 1, 9])
-            # tempW torch.Size([1, 4, 96, 1, 3, 3])
-
-            # _filter = tempW.view(tranNum, outNum, self.sizeP, self.sizeP)  # torch.Size([64, 5, 3, 3])
-            # _filter = _filter.permute(1, 0, 2, 3).contiguous().view(outNum * tranNum, 1, self.sizeP, self.sizeP)
 
             _filter = tempW.view(tranNum, outNum, self.sizeP, self.sizeP)  # torch.Size([64, 5, 3, 3])
             _filter = _filter.contiguous().view(tranNum * outNum, 1, self.sizeP, self.sizeP)
@@ -569,10 +534,7 @@ class GroupFconv_PCA(nn.Module):
             # avoid re-computation of the filter and the bias on multiple consecutive calls of `.eval()`
             tranNum = self.tranNum
             outNum = self.outNum
-            inNum = self.inNum
-            expand = self.expand
             tempW = torch.einsum('ijok,mnak->monaij', self.Basis, self.weights)
-            # tempW = torch.einsum('ijok,mnak->monaij', [self.Basis, self.weights])   # for torch<1.0
 
             _filter = tempW.view(tranNum, outNum, self.sizeP, self.sizeP)  # torch.Size([64, 5, 3, 3])
             _filter = _filter.contiguous().view(tranNum * outNum, 1, self.sizeP, self.sizeP)
@@ -770,10 +732,6 @@ class eq_mamba_init:
         A_log = nn.Parameter(A_log)
         A_log._no_weight_decay = True
 
-        # if copies > 0:
-        #     A_log = A_log.view(d_inner, 1, d_state).repeat(1, copies, 1).contiguous()
-        #     if merge:
-        #         A_log = A_log.view(d_inner*copies, d_state)
         return A_log
 
 
@@ -784,10 +742,6 @@ class eq_mamba_init:
         D = nn.Parameter(D)  # Keep in fp32
         D._no_weight_decay = True
 
-        # if copies > 0:
-        #     D = D.view(d_inner, 1).repeat(1, copies).contiguous()
-        #     if merge:
-        #         D = D.view(-1)
         return D
 
 
@@ -796,8 +750,6 @@ class eq_mamba_init:
         # dt proj ============================
         dt_projs = cls.dt_init(dt_rank, d_inner, dt_scale, dt_init, dt_min, dt_max, dt_init_floor)
 
-        # dt_projs_weight = nn.Parameter(dt_projs.weight)  # (K, inner, rank)
-        # dt_projs_weight = dt_projs_weight.view(d_inner, 1, dt_rank).repeat(1, k_group, 1)
         dt_projs_bias = nn.Parameter(dt_projs.bias)  # (K, inner), torch.Size([96, 4])
         del dt_projs
 
@@ -1052,9 +1004,6 @@ class EQSS2D(nn.Module):
 
         if force_fp32:
             x, dts, Bs, Cs = to_fp32(x, dts, Bs, Cs)
-
-        # print(f"x {x.shape}, dts {dts.shape}, As {As.shape}, Bs {Bs.shape}, Cs {Cs.shape}, Ds {Ds.shape}, "
-        #       f"delta_bias  {delta_bias.shape}",)
 
         # #### original Mamba1 1D scan ####
         y: torch.Tensor = selective_scan(
@@ -1623,88 +1572,10 @@ if __name__ == "__main__":
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    op = EQSS2D(
-        d_model=96,
-        d_state=1,
-        ssm_ratio=1.0,
-        dt_rank='auto',
-        eq_tranNum=4,
-        act_layer=nn.SiLU,
-        # ==========================
-        d_conv=3,
-        conv_bias=False,
-        # ==========================
-        dropout=0.0,
-        # bias=False,
-        # ==========================
-        # dt_min=0.001,
-        # dt_max=0.1,
-        # dt_init="random",
-        # dt_scale="random",
-        # dt_init_floor=1e-4,
-        initialize="v0",
-        # ==========================
-        forward_type="v05_noz",
-        channel_first=True,
-    ).to(device)
-
-
-    block = EQVSSBlock(
-        hidden_dim=96,
-        # drop_path=0.015384615398943424,
-        drop_path=0.0,
-        norm_layer=EQLayerNorm2d,
-        channel_first=True,
-        ssm_d_state=1,
-        ssm_ratio=1.0,
-        ssm_dt_rank='auto',
-        ssm_act_layer=nn.SiLU,
-        ssm_conv=3,
-        ssm_conv_bias=False,
-        ssm_drop_rate=0.0,
-        ssm_init='v0',
-        forward_type='v05_noz',
-        mlp_ratio=4.0,
-        mlp_act_layer=nn.GELU,
-        mlp_drop_rate=0.0,
-        gmlp=False,
-        use_checkpoint=False,
-        _SS2D=EQSS2D
-    ).to(device)
-
-    from timm.utils import ModelEma as ModelEma
-    op_ema = ModelEma(
-        op,
-        decay=0.9999,
-        device='',
-        resume='')
-
-
     batch = 10
     d_inner = 24
     height = 56
     width = 56
-    height = 128
-    width = 171
-
-    # x = torch.randn([batch, d_inner, 4, height, width], device=device)
-    # x_rot = rotate_and_shift(x, rotate_times=1, rotate_dims=[-2, -1], shift_times=1, shift_dim=2)
-    #
-    # # xs = torch.cat([x, x_rot], dim=0)
-    # xs = x
-    # xs = rearrange(xs, 'b c t h w -> b (c t) h w').contiguous()
-    #
-    # ys = op(xs)
-    # # ys = block(xs)
-    #
-    # ys = rearrange(ys, 'b (c t) h w -> b c t h w', t=4).contiguous()
-    #
-    # print("**** ys", ys.shape)
-    #
-    #
-    # y, y_reverse = torch.split(ys, [batch, batch], dim=0)
-    # y_reverse = rotate_and_shift(y_reverse, rotate_times=-1, rotate_dims=[-2, -1], shift_times=-1, shift_dim=2)
-    # print_error(y.detach().cpu(), y_reverse.detach().cpu())
 
     print("================")
     eqvmamba_tiny = EQVSSM(
@@ -1737,132 +1608,14 @@ if __name__ == "__main__":
         imgsize=224,
     ).to(device)
 
-    from timm.utils import ModelEma as ModelEma
-    eqvmamba_tiny_ema = ModelEma(
-        eqvmamba_tiny,
-        decay=0.9999,
-        device='',
-        resume='')
-
-    eqvmamba_tiny = eqvmamba_tiny_ema.ema
-
     x = torch.randn([batch, 3, 224, 224], device=device)
     x_rot = rotate_and_shift(x, rotate_times=1, rotate_dims=[-2, -1], shift_times=0, shift_dim=2)
     xs = torch.cat([x, x_rot], dim=0)
 
-    # eqvmamba_tiny.eval()
-    # eqvmamba_tiny.train()
     ys = eqvmamba_tiny(xs)
-    # feature, ys = eqvmamba_tiny(xs)
 
-    print("**** ys", ys.shape, ys.max(), ys.min(), ys.mean())
     y, y_reverse = torch.split(ys, [batch, batch], dim=0)
     print_error(y.detach().cpu(), y_reverse.detach().cpu())
 
-    # feature = rearrange(feature, 'b (c t) h w -> b c t h w', t=4).contiguous()
-    #
-    # print("**** feature", feature.shape)
-    # feature, feature_reverse = torch.split(feature, [batch, batch], dim=0)
-    # feature_reverse = rotate_and_shift(feature_reverse, rotate_times=-1, rotate_dims=[-2, -1], shift_times=-1, shift_dim=2)
-    # print_error(feature.detach().cpu(), feature_reverse.detach().cpu())
-
-    print("================")
-    eqvmamba_tiny = EQVSSM(
-        depths=[2, 2, 8, 2],
-        dims=96,
-        drop_path_rate=0.2,
-        # drop_path_rate=0.0,
-        patch_size=4,
-        in_chans=3,
-        num_classes=100,
-        ssm_d_state=1,
-        ssm_ratio=1.0,
-        ssm_dt_rank="auto",
-        ssm_act_layer="silu",
-        ssm_conv=3,
-        ssm_conv_bias=False,
-        ssm_drop_rate=0.0,
-        ssm_init="v0",
-        forward_type="v05_noz",
-        mlp_ratio=4.0,
-        mlp_act_layer="gelu",
-        mlp_drop_rate=0.0,
-        gmlp=False,
-        patch_norm=True,
-        norm_layer="ln2d",
-        downsample_version="v3",
-        patchembed_version="v2",
-        use_checkpoint=False,
-        posembed=False,
-        imgsize=224,
-    ).to(device)
-
-    # checkpoint = torch.load(p0, map_location='cpu')
-    # msg = eqvmamba_tiny.load_state_dict(checkpoint['model'], strict=False)
-    # print(msg)
-
-    x = torch.randn([batch, 3, 224, 224], device=device)
-    x_rot = rotate_and_shift(x, rotate_times=1, rotate_dims=[-2, -1], shift_times=0, shift_dim=2)
-    xs = torch.cat([x, x_rot], dim=0)
-
-    # eqvmamba_tiny.eval()
-    # eqvmamba_tiny.train()
-    ys = eqvmamba_tiny(xs)
-
-    print("**** ys", ys.shape, ys.max(), ys.min(), ys.mean())
-    y, y_reverse = torch.split(ys, [batch, batch], dim=0)
-    print_error(y.detach().cpu(), y_reverse.detach().cpu())
-
-    # feature = rearrange(ys, 'b (c t) h w -> b c t h w', t=4).contiguous()
-    # print("**** feature", feature.shape)
-    # feature, feature_reverse = torch.split(feature, [batch, batch], dim=0)
-    # feature_reverse = rotate_and_shift(feature_reverse, rotate_times=-1, rotate_dims=[-2, -1], shift_times=-1, shift_dim=2)
-    # print_error(feature.detach().cpu(), feature_reverse.detach().cpu())
-
-    print("======= Backbone_EQVSSM =========")
-    backbone = Backbone_EQVSSM(
-        out_indices=(0, 1, 2, 3),
-        eq_tranNum=4,
-        pretrained="/data0/zzc/projects/VMamba/classification/exp/eqvssm1_tiny_0230s/20251024103824/ckpt_epoch_ema_best.pth",
-        depths=[2, 2, 8, 2],
-        dims=96,
-        drop_path_rate=0.2,
-        # drop_path_rate=0.0,
-        patch_size=4,
-        in_chans=3,
-        num_classes=100,
-        ssm_d_state=1,
-        ssm_ratio=1.0,
-        ssm_dt_rank="auto",
-        ssm_act_layer="silu",
-        ssm_conv=3,
-        ssm_conv_bias=False,
-        ssm_drop_rate=0.0,
-        ssm_init="v0",
-        forward_type="v05_noz",
-        mlp_ratio=4.0,
-        mlp_act_layer="gelu",
-        mlp_drop_rate=0.0,
-        gmlp=False,
-        patch_norm=True,
-        norm_layer="ln2d",
-        downsample_version="v3",
-        patchembed_version="v2",
-        use_checkpoint=False,
-        posembed=False,
-        imgsize=224,
-    ).to(device)
-
-    outs = backbone(xs)
-
-    print("outs ", len(outs), [y.shape for y in outs])
-
-    for i in range(len(outs)):
-        ys = outs[i] 
-        ys = rearrange(ys, 'b (c t) h w -> b c t h w', t=4).contiguous()
-        print("**** ys", i, ys.shape)
-        y, y_reverse = torch.split(ys, [10, 10], dim=0)
-        y_reverse = rotate_and_shift(y_reverse, rotate_times=-1, rotate_dims=[-2, -1], shift_times=-1, shift_dim=-3)
-        print_error(y.detach().cpu(), y_reverse.detach().cpu())
 
 
