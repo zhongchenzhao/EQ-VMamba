@@ -112,7 +112,6 @@ bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-160k_cocostuff_I
 
 CUDA_VISIBLE_DEVICES=0,1 bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-15k_loveda-512x512_tiny.py 2;
 CUDA_VISIBLE_DEVICES=0,1 bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-15k_potsdam-512x512_tiny.py 2;
-CUDA_VISIBLE_DEVICES=0,1 bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-15k_vaihingen-512x512_tiny.py 2;
 
 
 # EQ-VMamba-Small
@@ -123,7 +122,6 @@ bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-160k_cocostuff_I
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-15k_loveda-512x512_small.py 4;
 CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-15k_potsdam-512x512_small.py 4;
-CUDA_VISIBLE_DEVICES=0,1,2,3 bash ./tools/dist_train.sh ./configs/eqvssm/upernet_eqvssm_4xb4-15k_vaihingen-512x512_small.py 4;
 ```
 
 
