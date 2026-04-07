@@ -23,9 +23,15 @@
 
 
 
+**Overall architecture of the rotation equivariant visual Mamba (EQ-VMamba):**  
+
 ![contribution](./figures/EQ-VMamba_architecture.png)
 
 
+
+**Architectural pipeline of the rotation equivariant Visual State-Space (EQ-VSS) block:**  
+
+![contribution](./figures/EQ-Mamba_Blocks.png)
 
 
 
@@ -39,13 +45,11 @@ Extensive experiments across multiple benchmarks - including high-level image cl
 
 
 
-
-
 #### Super-resolution Visualization Results
 
 ![Mask_visualization](./figures/visualization_super_resolution.png)
 
-
+![Mask_visualization2](./figures/visualization_super_resolution2.png)
 
 
 
