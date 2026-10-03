@@ -23,33 +23,3 @@ model = dict(
     ),)
 # train_dataloader = dict(batch_size=4) # as gpus=4
 
-
-
-
-# =========================================================
-# Visualization
-# =========================================================
-train_dataloader = dict(batch_size=1)
-val_dataloader = dict(batch_size=1)
-test_dataloader = val_dataloader
-
-
-visualizer = dict(
-    type='SegLocalVisualizer',
-    name='visualizer',
-    vis_backends=[
-        dict(
-            type='LocalVisBackend',
-        )
-    ],
-    alpha=0.5,
-)
-
-default_hooks = dict(
-    visualization=dict(
-        type='SegVisualizationHook',
-        draw=True,
-        show=False,
-        interval=1,
-    )
-)
