@@ -1,4 +1,4 @@
-# Rotation Equivariant Mamba for Vision Tasks  
+# Rotation Equivariant Mamba for Vision Tasks (TPMAI 2026)
 
 ✨Official codes for **Rotation Equivariant Mamba for Vision Tasks (EQ-VMamba)**
 
@@ -9,7 +9,7 @@
 
 
 ## 📌 Updates
-
+* ***2026.10.25*** Our paper is accepted at IEEE TPAMI 2026!
 * ***2026.03.10*** We have submitted the preprint of our paper to [Arxiv](https://arxiv.org/abs/2603.09138)!
 * ***2025.03.21*** We have released the complete training code.
 
